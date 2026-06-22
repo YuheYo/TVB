@@ -2,7 +2,7 @@
   {
     "name": "Tangsan",
     "server": "http://192.168.100.1:5244",
-    "search": true,
+    "search": false,
     "hidden": false,
     "login": {
       "username": "admin",
