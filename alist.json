@@ -1,14 +1,18 @@
-{
-  "urls": [
-    {
-      "key": "alist_direct",
-      "name": "Tangsan 直连点播",
-      "type": 3,
-      "api": "csp_WebDav",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": "http://admin:password@192.168.100.1:5244/dav"
-    }
-  ]
-}
+[
+  {
+    "name": "我的软路由AList", 
+    "server": "http://192.168.100.1:5244", 
+    "search": true,
+    "hidden": false,
+    "login": {
+      "username": "admin", 
+      "password": "password" 
+    },
+    "params": [
+      {
+        "path": "/光鸭云盘", 
+        "pass": ""
+      }
+    ]
+  }
+]
