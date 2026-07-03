@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生肖数字横向精准计数器</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 15px; background: #f5f5f7; color: #333; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 600px; margin: 10px auto; box-sizing: border-box; }
+        h3 { margin-top: 0; color: #1d1d1f; text-align: center; font-size: 18px; }
+        textarea { width: 100%; height: 110px; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; box-sizing: border-box; font-size: 16px; resize: none; }
+        textarea:focus { outline: none; border-color: #0071e3; }
+        .btn-group { display: flex; gap: 10px; margin-top: 12px; }
+        .btn-main { flex: 2; background: #0071e3; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .btn-main:active { background: #005bb5; }
+        .btn-reset { flex: 1; background: #e8e8ed; color: #1d1d1f; border: none; padding: 12px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 500; }
+        .btn-reset:active { background: #d2d2d7; }
+        
+        .main-title { margin-top: 20px; font-weight: bold; font-size: 16px; padding: 6px 10px; border-radius: 6px; }
+        .sx-title { background: #e8f3ff; color: #0071e3; border-left: 5px solid #0071e3; }
+        .num-title { background: #fff3e0; color: #ff9800; border-left: 5px solid #ff9800; }
+        
+        .row-item { display: flex; flex-direction: column; padding: 12px 10px; border-bottom: 1px solid #f5f5f7; }
+        .row-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .badge-count { font-weight: bold; font-size: 14px; color: #555; }
+        .btn-copy-line { background: #515154; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .btn-copy-line:active { background: #1d1d1f; }
+        
+        .content-line { font-size: 16px; font-weight: 500; word-break: break-all; background: #fafafa; padding: 8px; border-radius: 6px; border: 1px dashed #e3e3e3; letter-spacing: 0.5px; }
+        .sx-color { color: #0071e3; font-weight: bold; }
+        .num-color { color: #ff9800; font-weight: bold; }
+        .comma { color: #999; font-weight: normal; margin: 0 2px; }
+        
+        .toast { position: fixed; bottom: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 25px; font-size: 14px; display: none; z-index: 999; text-align: center; max-width: 80%; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h3>生肖 / 数字 横向精准计数器</h3>
+        <textarea id="inputText" placeholder="请把内容粘贴到这里（支持空格、逗号或混排）..."></textarea>
+        <div class="btn-group">
+            <button class="btn-main" onclick="countAll()">一键横向统计</button>
+            <button class="btn-reset" onclick="resetAll()">一键恢复</button>
+        </div>
+        <div id="resultBox"></div>
+    </div>
+    <div id="toast" class="toast">复制成功</div>
+
+    <script>
+        function countAll() {
+            const text = document.getElementById('inputText').value;
+            const resultBox = document.getElementById('resultBox');
+            
+            if (!text.trim()) {
+                showToast('请输入有效内容');
+                return;
+            }
+
+            // 1. 统计生肖
+            const sxList = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+            const sxCounts = {};
+            sxList.forEach(sx => {
+                const reg = new RegExp(sx, 'g');
+                const match = text.match(reg);
+                if (match) sxCounts[sx] = match.length;
+            });
+            
+            // 2. 统计数字
+            const numCounts = {};
+            const numbers = text.match(/\d+/g) || [];
+            numbers.forEach(num => {
+                numCounts[num] = (numCounts[num] || 0) + 1;
+            });
+            
+            // 按次数进行横向归组
+            const sxGroups = {};
+            const numGroups = {};
+            
+            Object.entries(sxCounts).forEach(([sx, count]) => {
+                if (!sxGroups[count]) sxGroups[count] = [];
+                sxGroups[count].push(sx);
+            });
+            Object.entries(numCounts).forEach(([num, count]) => {
+                if (!numGroups[count]) numGroups[count] = [];
+                numGroups[count].push(num);
+            });
+
+            // 获取降序次数
+            const sxKeys = Object.keys(sxGroups).map(Number).sort((a, b) => b - a);
+            const numKeys = Object.keys(numGroups).map(Number).sort((a, b) => b - a);
+            
+            if (sxKeys.length === 0 && numKeys.length === 0) {
+                resultBox.innerHTML = '<p style="color:#86868b;text-align:center;margin-top:15px;">未识别出生肖或数字</p>';
+                return;
+            }
+            
+            let html = '';
+            let globalIndex = 0; // 用于给按钮标记唯一标识
+            
+            // 输出生肖横向结果
+            if (sxKeys.length > 0) {
+                html += '<div class="main-title sx-title">🐾 生肖重复排行（横向排列）</div>';
+                sxKeys.forEach(count => {
+                    const items = sxGroups[count];
+                    const plainStr = items.join(',');
+                    // 用于带颜色的高亮网页展现
+                    const htmlStr = items.map(item => `<span class="sx-color">${item}</span>`).join('<span class="comma">,</span>');
+                    
+                    globalIndex++;
+                    html += `
+                        <div class="row-item">
+                            <div class="row-item-header">
+                                <span class="badge-count">重复 ${count} 次：</span>
+                                <button class="btn-copy-line" onclick="copyText('${plainStr}')">复制这行</button>
+                            </div>
+                            <div class="content-line">${htmlStr}</div>
+                        </div>`;
+                });
+            }
+            
+            // 输出数字横向结果
+            if (numKeys.length > 0) {
+                html += '<div class="main-title num-title">🔢 数字重复排行（横向排列）</div>';
+                numKeys.forEach(count => {
+                    const items = numGroups[count];
+                    const plainStr = items.join(',');
+                    const htmlStr = items.map(item => `<span class="num-color">${item}</span>`).join('<span class="comma">,</span>');
+                    
+                    globalIndex++;
+                    html += `
+                        <div class="row-item">
+                            <div class="row-item-header">
+                                <span class="badge-count">重复 ${count} 次：</span>
+                                <button class="btn-copy-line" onclick="copyText('${plainStr}')">复制这行</button>
+                            </div>
+                            <div class="content-line">${htmlStr}</div>
+                        </div>`;
+                });
+            }
+            
+            resultBox.innerHTML = html;
+        }
+
+        // 一键恢复功能
+        function resetAll() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('resultBox').innerHTML = '';
+            showToast('已恢复清空');
+        }
+
+        // 手机端一键复制兼容逻辑
+        function copyText(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('已复制整行：<br>' + text);
+                }).catch(() => {
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('已复制整行：<br>' + text);
+            } catch (err) {
+                showToast('复制失败，请长按手动选择');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // 提示框
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = msg;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
