@@ -9,7 +9,6 @@
         .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 600px; margin: 8px auto; box-sizing: border-box; }
         h3 { margin-top: 0; color: #1d1d1f; text-align: center; font-size: 17px; margin-bottom: 12px; }
         
-        /* 核心输入框与按钮 */
         textarea { width: 100%; height: 95px; padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; box-sizing: border-box; font-size: 15px; resize: none; }
         textarea:focus { outline: none; border-color: #0071e3; }
         .btn-group { display: flex; gap: 8px; margin-top: 8px; margin-bottom: 5px; }
@@ -18,7 +17,6 @@
         .btn-reset { flex: 1; background: #e8e8ed; color: #1d1d1f; border: none; padding: 10px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 500; }
         .btn-reset:active { background: #d2d2d7; }
         
-        /* 统计排行布局 */
         .main-title { margin-top: 15px; font-weight: bold; font-size: 14px; padding: 5px 8px; border-radius: 6px; }
         .sx-title { background: #e8f3ff; color: #0071e3; border-left: 4px solid #0071e3; }
         .num-title { background: #fff3e0; color: #ff9800; border-left: 4px solid #ff9800; }
@@ -30,7 +28,6 @@
         .sx-color { color: #0071e3; font-weight: bold; font-size: 15px; }
         .comma { color: #ccc; margin: 0 1px; }
 
-        /* 杀码面板专属样式 */
         .ball-box { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; background: #f5f5f7; border: 1px solid #d2d2d7; border-radius: 8px; padding: 10px; margin-bottom: 10px; align-content: flex-start; }
         .ball-box:empty::before { content: "✍️ 在上方粘贴并统计文本后，此处将只显示涉及到的号码..."; color: #999; font-size: 13px; line-height: 20px; }
         .ball { width: 26px; height: 26px; border-radius: 50%; color: white; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.12); }
@@ -45,7 +42,6 @@
         .grid-box { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 10px; }
         .grid-box.grid-5 { grid-template-columns: repeat(5, 1fr); }
         
-        /* 核心杀码按钮样式 */
         .btn-tm { background: white; border: 1px solid #d2d2d7; padding: 7px 2px; border-radius: 5px; font-size: 13px; cursor: pointer; color: #333; text-align: center; font-weight: 500; transition: all 0.1s ease; }
         .btn-tm.active-kill { background: #4caf50 !important; color: white !important; border-color: #4caf50 !important; font-weight: bold; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
         
@@ -178,20 +174,24 @@
             '土': [1, 4, 5, 10, 11, 18, 19, 26, 27, 40, 41, 48, 49]
         };
 
+        // 新澳门、49图库官方标准映射库
         const CLASSIFY = {
-            '天肖': ['兔', '龙', '马', '羊', '猴', '猪'], '地肖': ['鼠', '牛', '虎', '蛇', '鸡', '狗'],
-            '前肖': ['鼠', '牛', '虎', '兔', '龙', '蛇'], '后肖': ['马', '羊', '猴', '鸡', '狗', '猪'],
-            '左肖': ['鼠', '牛', '虎', '兔', '龙', '蛇'], '右肖': ['马', '羊', '猴', '鸡', '狗', '猪'],
-            '家禽': ['牛', '马', '羊', '鸡', '狗', '猪'], '野兽': ['鼠', '虎', '兔', '龙', '蛇', '猴'],
+            '天肖': ['牛', '兔', '龙', '马', '猴', '猪'], 
+            '地肖': ['鼠', '虎', '蛇', '羊', '鸡', '狗'],
+            '前肖': ['鼠', '牛', '虎', '兔', '龙', '蛇'], 
+            '后肖': ['马', '羊', '猴', '鸡', '狗', '猪'],
+            '左肖': ['鼠', '牛', '虎', '兔', '龙', '蛇'], 
+            '右肖': ['马', '羊', '猴', '鸡', '狗', '猪'],
+            '家禽': ['牛', '马', '羊', '鸡', '狗', '猪'], 
+            '野兽': ['鼠', '虎', '兔', '龙', '蛇', '猴'],
             '独字肖': ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'],
-            '阴肖': ['鼠', '龙', '蛇', '马', '狗', '猪'], '阳肖': ['牛', '虎', '兔', '羊', '猴', '鸡']
+            '阴肖': ['鼠', '龙', '蛇', '马', '狗', '猪'], 
+            '阳肖': ['牛', '虎', '兔', '羊', '猴', '鸡']
         };
 
-        // 核心变量
-        let activeKillTags = new Set(); // 存储被点亮的杀码标签
-        let totalExtractedPool = new Set(); // 存储当前从文本里统计出来的原始号码（不含49全集）
+        let activeKillTags = new Set(); 
+        let totalExtractedPool = new Set(); 
 
-        // 初始化渲染生肖按钮
         const sxContainer = document.getElementById('sxBtnContainer');
         Object.keys(SX_MAP).forEach(sx => {
             sxContainer.innerHTML += `<button class="btn-tm" data-type="${sx}" onclick="handleTmClick(this)">${sx}</button>`;
@@ -213,30 +213,22 @@
                 activeKillTags.add(type);
                 btnElement.classList.add('active-kill');
             }
-            // 重新计算并联动
             calculateAndFilter();
         }
 
-        // 核心：根据【统计出来的原始球】和【点亮的杀码标签】，算出幸存球
         function calculateAndFilter() {
-            // 复制一份统计出来的原始号码
             let alivePool = new Set(totalExtractedPool);
 
-            // 扣除所有点亮属性包含的号码
             activeKillTags.forEach(type => {
                 let killNumbers = getTypeNumbers(type);
                 killNumbers.forEach(num => alivePool.delete(num));
             });
 
-            // 渲染下方精简号码池
             renderAliveBalls(alivePool);
-
-            // 挂载到全局，供countAll方法渲染上方大框时进行动态排除
             window.currentAlivePool = alivePool;
-            countAll(true); // 传入true代表是下部触发，不再重复抓取文本
+            countAll(true); 
         }
 
-        // 提取各种属性对应的1-49号码
         function getTypeNumbers(type) {
             let targets = [];
             if (['单','双','大','小','合单','合双','大单','大双','小单','小双','合大','合小','尾大','尾小'].includes(type)) {
@@ -278,7 +270,6 @@
             return targets;
         }
 
-        // 渲染精简号码球区域
         function renderAliveBalls(pool) {
             const display = document.getElementById('ballDisplay');
             const hint = document.getElementById('filterStatusHint');
@@ -293,7 +284,6 @@
                 display.innerHTML += `<div class="ball ${color}">${formatNum}</div>`;
             });
 
-            // 只要亮了绿灯杀码标签，就开启红字过滤提示
             if (activeKillTags.size > 0) { hint.style.display = 'block'; } else { hint.style.display = 'none'; }
         }
 
@@ -323,7 +313,6 @@
                 return; 
             }
 
-            // 只有当用户修改了输入框文本，或者强制刷新时，才去重新提取“原始统计池”
             if (!isSubTrigger) {
                 totalExtractedPool.clear();
                 const initNumbers = text.match(/\d+/g) || [];
@@ -332,7 +321,6 @@
                     if (pNum >= 1 && pNum <= 49) totalExtractedPool.add(pNum);
                 });
                 
-                // 首次或者文本改变时，自动触发一次完整的筛选运算
                 let initialAlive = new Set(totalExtractedPool);
                 activeKillTags.forEach(type => {
                     getTypeNumbers(type).forEach(n => initialAlive.delete(n));
@@ -341,10 +329,8 @@
                 renderAliveBalls(initialAlive);
             }
 
-            // 获取当前动态算出来的幸存号码池
             let pool = window.currentAlivePool || totalExtractedPool;
 
-            // 统计生肖
             const sxList = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
             const rawSxCounts = {};
             sxList.forEach(sx => {
@@ -352,7 +338,6 @@
                 if (match) rawSxCounts[sx] = match.length;
             });
             
-            // 统计数字次数
             const rawNumCounts = {};
             const numbers = text.match(/\d+/g) || [];
             numbers.forEach(num => {
@@ -360,21 +345,19 @@
                 if (parsedNum >= 1 && parsedNum <= 49) { rawNumCounts[parsedNum] = (rawNumCounts[parsedNum] || 0) + 1; }
             });
 
-            // 联动排除过滤
             const finalSxCounts = {}; const finalNumCounts = {};
 
             Object.entries(rawNumCounts).forEach(([num, count]) => {
                 let n = parseInt(num);
-                if (pool.has(n)) { finalNumCounts[n] = count; } // 只有幸存的才展示
+                if (pool.has(n)) { finalNumCounts[n] = count; } 
             });
 
             Object.entries(rawSxCounts).forEach(([sx, count]) => {
                 let sxNums = SX_MAP[sx] || [];
-                let hasAliveNum = sxNums.some(n => pool.has(n)); // 只有对应生肖还有数字幸存才展示
+                let hasAliveNum = sxNums.some(n => pool.has(n)); 
                 if (hasAliveNum) { finalSxCounts[sx] = count; }
             });
 
-            // 排行洗牌
             const sxGroups = {}; const numGroups = {};
             Object.entries(finalSxCounts).forEach(([sx, count]) => {
                 if (!sxGroups[count]) sxGroups[count] = []; sxGroups[count].push(sx);
@@ -443,7 +426,6 @@
             showToast('已清空所有输入与统计球');
         }
 
-        // ==================== 4. 复制与工具方法 ====================
         function copyTextRaw(text, successMsg) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => { showToast(successMsg); }).catch(() => { fallbackCopy(text, successMsg); });
