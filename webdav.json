@@ -1,9 +1,12 @@
 [
   {
-    "name": "我的webdav",
-    "server": "http://192.168.100.1:5244/dav/",
-    "user": "admin",
-    "pass": "password",
+    "name": "我的webdav直链",
+    "type": 3,
+    "api": "csp_WebDav",
+    "searchable": 0,
+    "quickSearch": 0,
+    "filterable": 0,
+    "ext": "http://admin:password@192.168.100.1:5244/dav/",
     "parse": 0
   }
 ]
