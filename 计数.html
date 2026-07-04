@@ -3,188 +3,462 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生肖数字横向精准计数器</title>
+    <title>智能计数与精简杀码助手</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 15px; background: #f5f5f7; color: #333; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 600px; margin: 10px auto; box-sizing: border-box; }
-        h3 { margin-top: 0; color: #1d1d1f; text-align: center; font-size: 18px; }
-        textarea { width: 100%; height: 110px; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; box-sizing: border-box; font-size: 16px; resize: none; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 10px; background: #f5f5f7; color: #333; margin: 0; padding-bottom: 40px; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 600px; margin: 8px auto; box-sizing: border-box; }
+        h3 { margin-top: 0; color: #1d1d1f; text-align: center; font-size: 17px; margin-bottom: 12px; }
+        
+        /* 核心输入框与按钮 */
+        textarea { width: 100%; height: 95px; padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; box-sizing: border-box; font-size: 15px; resize: none; }
         textarea:focus { outline: none; border-color: #0071e3; }
-        .btn-group { display: flex; gap: 10px; margin-top: 12px; }
-        .btn-main { flex: 2; background: #0071e3; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .btn-group { display: flex; gap: 8px; margin-top: 8px; margin-bottom: 5px; }
+        .btn-main { flex: 2; background: #0071e3; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: bold; }
         .btn-main:active { background: #005bb5; }
-        .btn-reset { flex: 1; background: #e8e8ed; color: #1d1d1f; border: none; padding: 12px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 500; }
+        .btn-reset { flex: 1; background: #e8e8ed; color: #1d1d1f; border: none; padding: 10px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 500; }
         .btn-reset:active { background: #d2d2d7; }
         
-        .main-title { margin-top: 20px; font-weight: bold; font-size: 16px; padding: 6px 10px; border-radius: 6px; }
-        .sx-title { background: #e8f3ff; color: #0071e3; border-left: 5px solid #0071e3; }
-        .num-title { background: #fff3e0; color: #ff9800; border-left: 5px solid #ff9800; }
+        /* 统计排行布局 */
+        .main-title { margin-top: 15px; font-weight: bold; font-size: 14px; padding: 5px 8px; border-radius: 6px; }
+        .sx-title { background: #e8f3ff; color: #0071e3; border-left: 4px solid #0071e3; }
+        .num-title { background: #fff3e0; color: #ff9800; border-left: 4px solid #ff9800; }
+        .row-item { display: flex; flex-direction: column; padding: 8px 5px; border-bottom: 1px solid #f5f5f7; }
+        .row-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .badge-count { font-weight: bold; font-size: 13px; color: #555; }
+        .btn-copy-line { background: #515154; color: white; border: none; padding: 3px 8px; border-radius: 5px; font-size: 11px; cursor: pointer; }
+        .content-line { display: flex; flex-wrap: wrap; gap: 5px; background: #fafafa; padding: 6px; border-radius: 6px; border: 1px dashed #e3e3e3; min-height: 24px; align-items: center; }
+        .sx-color { color: #0071e3; font-weight: bold; font-size: 15px; }
+        .comma { color: #ccc; margin: 0 1px; }
+
+        /* 杀码面板专属样式 */
+        .ball-box { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; background: #f5f5f7; border: 1px solid #d2d2d7; border-radius: 8px; padding: 10px; margin-bottom: 10px; align-content: flex-start; }
+        .ball-box:empty::before { content: "✍️ 在上方粘贴并统计文本后，此处将只显示涉及到的号码..."; color: #999; font-size: 13px; line-height: 20px; }
+        .ball { width: 26px; height: 26px; border-radius: 50%; color: white; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.12); }
+        .ball.red { background: #e1251b; }
+        .ball.blue { background: #1472df; }
+        .ball.green { background: #2ba245; }
+        .ball-txt { display: inline-flex; align-items: center; justify-content: center; padding: 1px 5px; border-radius: 4px; color: white; font-size: 13px; font-weight: bold; }
         
-        .row-item { display: flex; flex-direction: column; padding: 12px 10px; border-bottom: 1px solid #f5f5f7; }
-        .row-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .badge-count { font-weight: bold; font-size: 14px; color: #555; }
-        .btn-copy-line { background: #515154; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-        .btn-copy-line:active { background: #1d1d1f; }
+        .op-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+        .btn-kill-status { flex: 1.5; background: #f44336; color: white; padding: 8px; border-radius: 6px; font-size: 14px; font-weight: bold; text-align: center; border: none; }
         
-        .content-line { font-size: 16px; font-weight: 500; word-break: break-all; background: #fafafa; padding: 8px; border-radius: 6px; border: 1px dashed #e3e3e3; letter-spacing: 0.5px; }
-        .sx-color { color: #0071e3; font-weight: bold; }
-        .num-color { color: #ff9800; font-weight: bold; }
-        .comma { color: #999; font-weight: normal; margin: 0 2px; }
+        .grid-box { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 10px; }
+        .grid-box.grid-5 { grid-template-columns: repeat(5, 1fr); }
         
-        .toast { position: fixed; bottom: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 25px; font-size: 14px; display: none; z-index: 999; text-align: center; max-width: 80%; }
+        /* 核心杀码按钮样式 */
+        .btn-tm { background: white; border: 1px solid #d2d2d7; padding: 7px 2px; border-radius: 5px; font-size: 13px; cursor: pointer; color: #333; text-align: center; font-weight: 500; transition: all 0.1s ease; }
+        .btn-tm.active-kill { background: #4caf50 !important; color: white !important; border-color: #4caf50 !important; font-weight: bold; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+        
+        .toast { position: fixed; bottom: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 25px; font-size: 13px; display: none; z-index: 999; text-align: center; }
+        .filter-hint { font-size: 12px; color: #f44336; text-align: center; margin-top: -5px; margin-bottom: 8px; font-weight: 500; }
     </style>
 </head>
 <body>
+
     <div class="card">
-        <h3>生肖 / 数字 横向精准计数器</h3>
-        <textarea id="inputText" placeholder="请把内容粘贴到这里（支持空格、逗号或混排）..."></textarea>
+        <h3>🐾 文本统计与动态杀码面板</h3>
+        <textarea id="inputText" oninput="countAll()" placeholder="第一步：在此粘贴开奖文本进行统计..."></textarea>
         <div class="btn-group">
-            <button class="btn-main" onclick="countAll()">一键横向统计</button>
-            <button class="btn-reset" onclick="resetAll()">一键恢复</button>
+            <button class="btn-main" onclick="countAll()">强制刷新统计</button>
+            <button class="btn-reset" onclick="resetAllInput()">清空输入</button>
         </div>
+        <div id="filterStatusHint" class="filter-hint" style="display:none;">⚠️ 已启用过滤：上方统计结果已实时扣除高亮杀掉的号码</div>
         <div id="resultBox"></div>
     </div>
-    <div id="toast" class="toast">复制成功</div>
+
+    <div class="card" style="margin-top: 0;">
+        <h3>🔮 精简杀码盘（只显示统计出来的号码）</h3>
+        
+        <div class="ball-box" id="ballDisplay"></div>
+        
+        <div class="op-bar">
+            <div class="btn-kill-status">智能开关杀码模式</div>
+            <div class="btn-reset" style="text-align:center; padding: 8px 0; flex:0.6;" onclick="resetAllKills()">恢复全部</div>
+            <button class="btn-main" style="padding: 0; font-size: 14px; flex:0.8;" onclick="copyTmResults()">复制当前剩余球</button>
+        </div>
+
+        <div class="grid-box">
+            <button class="btn-tm" data-type="单" onclick="handleTmClick(this)">单</button>
+            <button class="btn-tm" data-type="双" onclick="handleTmClick(this)">双</button>
+            <button class="btn-tm" style="visibility: hidden;"></button>
+            <button class="btn-tm" style="visibility: hidden;"></button>
+            <button class="btn-tm" data-type="大" onclick="handleTmClick(this)">大</button>
+            <button class="btn-tm" data-type="小" onclick="handleTmClick(this)">小</button>
+        </div>
+
+        <div class="grid-box grid-5">
+            <button class="btn-tm" data-type="合单" onclick="handleTmClick(this)">合单</button>
+            <button class="btn-tm" data-type="大单" onclick="handleTmClick(this)">大单</button>
+            <button class="btn-tm" data-type="大双" onclick="handleTmClick(this)">大双</button>
+            <button class="btn-tm" data-type="合大" onclick="handleTmClick(this)">合大</button>
+            <button class="btn-tm" data-type="尾大" onclick="handleTmClick(this)">尾大</button>
+            <button class="btn-tm" data-type="合双" onclick="handleTmClick(this)">合双</button>
+            <button class="btn-tm" data-type="小单" onclick="handleTmClick(this)">小单</button>
+            <button class="btn-tm" data-type="小双" onclick="handleTmClick(this)">小双</button>
+            <button class="btn-tm" data-type="合小" onclick="handleTmClick(this)">合小</button>
+            <button class="btn-tm" data-type="尾小" onclick="handleTmClick(this)">尾小</button>
+        </div>
+
+        <div class="grid-box grid-5" style="margin-top: 8px;">
+            <button class="btn-tm" data-type="金" style="background:#fff0f0;" onclick="handleTmClick(this)">金</button>
+            <button class="btn-tm" data-type="木" style="background:#f0fff0;" onclick="handleTmClick(this)">木</button>
+            <button class="btn-tm" data-type="水" style="background:#f0f8ff;" onclick="handleTmClick(this)">水</button>
+            <button class="btn-tm" data-type="火" style="background:#fff5eb;" onclick="handleTmClick(this)">火</button>
+            <button class="btn-tm" data-type="土" style="background:#fcf8f2;" onclick="handleTmClick(this)">土</button>
+        </div>
+
+        <div class="grid-box grid-5" style="margin-top: 8px;">
+            <button class="btn-tm" data-type="红波" style="color:#e1251b;" onclick="handleTmClick(this)">红波</button>
+            <button class="btn-tm" data-type="蓝波" style="color:#1472df;" onclick="handleTmClick(this)">蓝波</button>
+            <button class="btn-tm" data-type="绿波" style="color:#2ba245;" onclick="handleTmClick(this)">绿波</button>
+            <button class="btn-tm" data-type="家禽" onclick="handleTmClick(this)">家禽</button>
+            <button class="btn-tm" data-type="野兽" onclick="handleTmClick(this)">野兽</button>
+        </div>
+
+        <div class="grid-box grid-6" style="margin-top: 8px;">
+            <button class="btn-tm" data-type="红单" onclick="handleTmClick(this)">红单</button>
+            <button class="btn-tm" data-type="红双" onclick="handleTmClick(this)">红双</button>
+            <button class="btn-tm" data-type="蓝单" onclick="handleTmClick(this)">蓝单</button>
+            <button class="btn-tm" data-type="蓝双" onclick="handleTmClick(this)">蓝双</button>
+            <button class="btn-tm" data-type="绿单" onclick="handleTmClick(this)">绿单</button>
+            <button class="btn-tm" data-type="绿双" onclick="handleTmClick(this)">绿双</button>
+        </div>
+
+        <div class="grid-box" style="margin-top: 12px;" id="sxBtnContainer"></div>
+
+        <div class="grid-box grid-5" style="margin-top: 8px;">
+            <button class="btn-tm" data-type="天肖" onclick="handleTmClick(this)">天肖</button>
+            <button class="btn-tm" data-type="地肖" onclick="handleTmClick(this)">地肖</button>
+            <button class="btn-tm" data-type="左肖" onclick="handleTmClick(this)">左肖</button>
+            <button class="btn-tm" data-type="右肖" onclick="handleTmClick(this)">右肖</button>
+            <button class="btn-tm" data-type="前肖" onclick="handleTmClick(this)">前肖</button>
+            <button class="btn-tm" data-type="后肖" onclick="handleTmClick(this)">后肖</button>
+            <button class="btn-tm" data-type="独字肖" onclick="handleTmClick(this)">独字肖</button>
+            <button class="btn-tm" style="visibility: hidden;"></button>
+            <button class="btn-tm" data-type="阴肖" onclick="handleTmClick(this)">阴肖</button>
+            <button class="btn-tm" data-type="阳肖" onclick="handleTmClick(this)">阳肖</button>
+        </div>
+
+        <div class="grid-box" style="margin-top: 12px;">
+            <button class="btn-tm" data-type="0尾" onclick="handleTmClick(this)">0尾</button>
+            <button class="btn-tm" data-type="1尾" onclick="handleTmClick(this)">1尾</button>
+            <button class="btn-tm" data-type="2尾" onclick="handleTmClick(this)">2尾</button>
+            <button class="btn-tm" data-type="3尾" onclick="handleTmClick(this)">3尾</button>
+            <button class="btn-tm" data-type="4尾" onclick="handleTmClick(this)">4尾</button>
+            <button class="btn-tm" data-type="5尾" onclick="handleTmClick(this)">5尾</button>
+            <button class="btn-tm" data-type="6尾" onclick="handleTmClick(this)">6尾</button>
+            <button class="btn-tm" data-type="7尾" onclick="handleTmClick(this)">7尾</button>
+            <button class="btn-tm" data-type="8尾" onclick="handleTmClick(this)">8尾</button>
+            <button class="btn-tm" data-type="9尾" onclick="handleTmClick(this)">9尾</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
 
     <script>
-        function countAll() {
+        // ==================== 1. 底层核心映射数据 ====================
+        const BO_SE = {
+            red: [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46],
+            blue: [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 32, 36, 37, 41, 42, 47, 48],
+            green: [5, 6, 11, 16, 17, 21, 22, 27, 28, 33, 38, 39, 43, 44, 49]
+        };
+
+        const SX_MAP = {
+            '马': [1, 13, 25, 37, 49], '蛇': [2, 14, 26, 38], '龙': [3, 15, 27, 39],
+            '兔': [4, 16, 28, 40],    '虎': [5, 17, 29, 41], '牛': [6, 18, 30, 42],
+            '鼠': [7, 19, 31, 43],    '猪': [8, 20, 32, 44], '狗': [9, 21, 33, 45],
+            '鸡': [10, 22, 34, 46],   '猴': [11, 23, 35, 47], '羊': [12, 24, 36, 48]
+        };
+
+        const WU_XING = {
+            '金': [2, 3, 16, 17, 24, 25, 32, 33, 46, 47],
+            '木': [6, 7, 14, 15, 28, 29, 36, 37, 44, 45],
+            '水': [12, 13, 20, 21, 34, 35, 42, 43],
+            '火': [8, 9, 22, 23, 30, 31, 38, 39],
+            '土': [1, 4, 5, 10, 11, 18, 19, 26, 27, 40, 41, 48, 49]
+        };
+
+        const CLASSIFY = {
+            '天肖': ['兔', '龙', '马', '羊', '猴', '猪'], '地肖': ['鼠', '牛', '虎', '蛇', '鸡', '狗'],
+            '前肖': ['鼠', '牛', '虎', '兔', '龙', '蛇'], '后肖': ['马', '羊', '猴', '鸡', '狗', '猪'],
+            '左肖': ['鼠', '牛', '虎', '兔', '龙', '蛇'], '右肖': ['马', '羊', '猴', '鸡', '狗', '猪'],
+            '家禽': ['牛', '马', '羊', '鸡', '狗', '猪'], '野兽': ['鼠', '虎', '兔', '龙', '蛇', '猴'],
+            '独字肖': ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'],
+            '阴肖': ['鼠', '龙', '蛇', '马', '狗', '猪'], '阳肖': ['牛', '虎', '兔', '羊', '猴', '鸡']
+        };
+
+        // 核心变量
+        let activeKillTags = new Set(); // 存储被点亮的杀码标签
+        let totalExtractedPool = new Set(); // 存储当前从文本里统计出来的原始号码（不含49全集）
+
+        // 初始化渲染生肖按钮
+        const sxContainer = document.getElementById('sxBtnContainer');
+        Object.keys(SX_MAP).forEach(sx => {
+            sxContainer.innerHTML += `<button class="btn-tm" data-type="${sx}" onclick="handleTmClick(this)">${sx}</button>`;
+        });
+
+        function getBallColor(num) {
+            if (BO_SE.red.includes(num)) return 'red';
+            if (BO_SE.blue.includes(num)) return 'blue';
+            return 'green';
+        }
+
+        // ==================== 2. 开关核心触发逻辑 ====================
+        function handleTmClick(btnElement) {
+            const type = btnElement.getAttribute('data-type');
+            if (activeKillTags.has(type)) {
+                activeKillTags.delete(type);
+                btnElement.classList.remove('active-kill');
+            } else {
+                activeKillTags.add(type);
+                btnElement.classList.add('active-kill');
+            }
+            // 重新计算并联动
+            calculateAndFilter();
+        }
+
+        // 核心：根据【统计出来的原始球】和【点亮的杀码标签】，算出幸存球
+        function calculateAndFilter() {
+            // 复制一份统计出来的原始号码
+            let alivePool = new Set(totalExtractedPool);
+
+            // 扣除所有点亮属性包含的号码
+            activeKillTags.forEach(type => {
+                let killNumbers = getTypeNumbers(type);
+                killNumbers.forEach(num => alivePool.delete(num));
+            });
+
+            // 渲染下方精简号码池
+            renderAliveBalls(alivePool);
+
+            // 挂载到全局，供countAll方法渲染上方大框时进行动态排除
+            window.currentAlivePool = alivePool;
+            countAll(true); // 传入true代表是下部触发，不再重复抓取文本
+        }
+
+        // 提取各种属性对应的1-49号码
+        function getTypeNumbers(type) {
+            let targets = [];
+            if (['单','双','大','小','合单','合双','大单','大双','小单','小双','合大','合小','尾大','尾小'].includes(type)) {
+                for(let i=1; i<=49; i++) {
+                    let isSingle = i % 2 !== 0; let isBig = i >= 25;
+                    let sum = Math.floor(i/10) + (i%10);
+                    let isSumSingle = sum % 2 !== 0; let isSumBig = sum >= 7;
+                    let isTailBig = (i % 10) >= 5;
+                    if (type === '单' && isSingle) targets.push(i);
+                    if (type === '双' && !isSingle) targets.push(i);
+                    if (type === '大' && isBig) targets.push(i);
+                    if (type === '小' && !isBig) targets.push(i);
+                    if (type === '合单' && isSumSingle) targets.push(i);
+                    if (type === '合双' && !isSumSingle) targets.push(i);
+                    if (type === '大单' && isBig && isSingle) targets.push(i);
+                    if (type === '大双' && isBig && !isSingle) targets.push(i);
+                    if (type === '小单' && !isBig && isSingle) targets.push(i);
+                    if (type === '小双' && !isBig && !isSingle) targets.push(i);
+                    if (type === '合大' && isSumBig) targets.push(i);
+                    if (type === '合小' && !isSumBig) targets.push(i);
+                    if (type === '尾大' && isTailBig) targets.push(i);
+                    if (type === '尾小' && !isTailBig) targets.push(i);
+                }
+            } else if (['红波','蓝波','绿波','红单','红双','蓝单','蓝双','绿单','绿双'].includes(type)) {
+                let baseColor = type.substring(0,2); let sub = type.substring(2);
+                let colorKey = baseColor === '红波' || baseColor === '红单' || baseColor === '红双' ? 'red' : (baseColor === '蓝波' || baseColor === '蓝单' || baseColor === '蓝双' ? 'blue' : 'green');
+                BO_SE[colorKey].forEach(i => {
+                    if (!sub) targets.push(i);
+                    if (sub === '单' && i % 2 !== 0) targets.push(i);
+                    if (sub === '双' && i % 2 === 0) targets.push(i);
+                });
+            } else if (WU_XING[type]) { targets = WU_XING[type]; }
+              else if (SX_MAP[type]) { targets = SX_MAP[type]; }
+              else if (CLASSIFY[type]) { CLASSIFY[type].forEach(sx => { targets = targets.concat(SX_MAP[sx]); }); }
+              else if (type.endsWith('尾')) {
+                let tailNum = parseInt(type.charAt(0));
+                for(let i=1; i<=49; i++) { if (i % 10 === tailNum) targets.push(i); }
+            }
+            return targets;
+        }
+
+        // 渲染精简号码球区域
+        function renderAliveBalls(pool) {
+            const display = document.getElementById('ballDisplay');
+            const hint = document.getElementById('filterStatusHint');
+            display.innerHTML = '';
+            
+            if (pool.size === 0) return;
+
+            const sorted = Array.from(pool).sort((a, b) => a - b);
+            sorted.forEach(num => {
+                let formatNum = num < 10 ? '0' + num : num;
+                let color = getBallColor(num);
+                display.innerHTML += `<div class="ball ${color}">${formatNum}</div>`;
+            });
+
+            // 只要亮了绿灯杀码标签，就开启红字过滤提示
+            if (activeKillTags.size > 0) { hint.style.display = 'block'; } else { hint.style.display = 'none'; }
+        }
+
+        function resetAllKills() {
+            activeKillTags.clear();
+            document.querySelectorAll('.btn-tm').forEach(btn => btn.classList.remove('active-kill'));
+            calculateAndFilter();
+            showToast('已恢复全部被杀号码');
+        }
+
+        function copyTmResults() {
+            let pool = window.currentAlivePool || new Set();
+            if (pool.size === 0) { showToast('当前没有可以复制的号码球'); return; }
+            const sorted = Array.from(pool).sort((a, b) => a - b).map(num => num < 10 ? '0' + num : num).join(',');
+            copyTextRaw(sorted, '已复制精简过滤后的号码：<br>' + sorted);
+        }
+
+        // ==================== 3. 上方：核心横向统计与数据抓取 ====================
+        function countAll(isSubTrigger = false) {
             const text = document.getElementById('inputText').value;
             const resultBox = document.getElementById('resultBox');
-            
-            if (!text.trim()) {
-                showToast('请输入有效内容');
-                return;
+            if (!text.trim()) { 
+                resultBox.innerHTML = ''; 
+                totalExtractedPool.clear();
+                document.getElementById('ballDisplay').innerHTML = '';
+                document.getElementById('filterStatusHint').style.display = 'none';
+                return; 
             }
 
-            // 1. 统计生肖
+            // 只有当用户修改了输入框文本，或者强制刷新时，才去重新提取“原始统计池”
+            if (!isSubTrigger) {
+                totalExtractedPool.clear();
+                const initNumbers = text.match(/\d+/g) || [];
+                initNumbers.forEach(num => {
+                    let pNum = parseInt(num);
+                    if (pNum >= 1 && pNum <= 49) totalExtractedPool.add(pNum);
+                });
+                
+                // 首次或者文本改变时，自动触发一次完整的筛选运算
+                let initialAlive = new Set(totalExtractedPool);
+                activeKillTags.forEach(type => {
+                    getTypeNumbers(type).forEach(n => initialAlive.delete(n));
+                });
+                window.currentAlivePool = initialAlive;
+                renderAliveBalls(initialAlive);
+            }
+
+            // 获取当前动态算出来的幸存号码池
+            let pool = window.currentAlivePool || totalExtractedPool;
+
+            // 统计生肖
             const sxList = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
-            const sxCounts = {};
+            const rawSxCounts = {};
             sxList.forEach(sx => {
-                const reg = new RegExp(sx, 'g');
-                const match = text.match(reg);
-                if (match) sxCounts[sx] = match.length;
+                const reg = new RegExp(sx, 'g'); const match = text.match(reg);
+                if (match) rawSxCounts[sx] = match.length;
             });
             
-            // 2. 统计数字
-            const numCounts = {};
+            // 统计数字次数
+            const rawNumCounts = {};
             const numbers = text.match(/\d+/g) || [];
             numbers.forEach(num => {
-                numCounts[num] = (numCounts[num] || 0) + 1;
-            });
-            
-            // 按次数进行横向归组
-            const sxGroups = {};
-            const numGroups = {};
-            
-            Object.entries(sxCounts).forEach(([sx, count]) => {
-                if (!sxGroups[count]) sxGroups[count] = [];
-                sxGroups[count].push(sx);
-            });
-            Object.entries(numCounts).forEach(([num, count]) => {
-                if (!numGroups[count]) numGroups[count] = [];
-                numGroups[count].push(num);
+                let parsedNum = parseInt(num);
+                if (parsedNum >= 1 && parsedNum <= 49) { rawNumCounts[parsedNum] = (rawNumCounts[parsedNum] || 0) + 1; }
             });
 
-            // 获取降序次数
+            // 联动排除过滤
+            const finalSxCounts = {}; const finalNumCounts = {};
+
+            Object.entries(rawNumCounts).forEach(([num, count]) => {
+                let n = parseInt(num);
+                if (pool.has(n)) { finalNumCounts[n] = count; } // 只有幸存的才展示
+            });
+
+            Object.entries(rawSxCounts).forEach(([sx, count]) => {
+                let sxNums = SX_MAP[sx] || [];
+                let hasAliveNum = sxNums.some(n => pool.has(n)); // 只有对应生肖还有数字幸存才展示
+                if (hasAliveNum) { finalSxCounts[sx] = count; }
+            });
+
+            // 排行洗牌
+            const sxGroups = {}; const numGroups = {};
+            Object.entries(finalSxCounts).forEach(([sx, count]) => {
+                if (!sxGroups[count]) sxGroups[count] = []; sxGroups[count].push(sx);
+            });
+            Object.entries(finalNumCounts).forEach(([num, count]) => {
+                if (!numGroups[count]) numGroups[count] = []; numGroups[count].push(num);
+            });
+
             const sxKeys = Object.keys(sxGroups).map(Number).sort((a, b) => b - a);
             const numKeys = Object.keys(numGroups).map(Number).sort((a, b) => b - a);
             
             if (sxKeys.length === 0 && numKeys.length === 0) {
-                resultBox.innerHTML = '<p style="color:#86868b;text-align:center;margin-top:15px;">未识别出生肖或数字</p>';
+                resultBox.innerHTML = '<p style="color:#f44336;text-align:center;margin-top:15px;font-weight:bold;">⚠️ 当前统计出的全部号码已被您下方的条件排除/杀光</p>';
                 return;
             }
             
             let html = '';
-            let globalIndex = 0; // 用于给按钮标记唯一标识
-            
-            // 输出生肖横向结果
             if (sxKeys.length > 0) {
-                html += '<div class="main-title sx-title">🐾 生肖重复排行（横向排列）</div>';
+                html += '<div class="main-title sx-title">🐾 生肖重复排行（联动排除后）</div>';
                 sxKeys.forEach(count => {
-                    const items = sxGroups[count];
-                    const plainStr = items.join(',');
-                    // 用于带颜色的高亮网页展现
+                    const items = sxGroups[count]; const plainStr = items.join(',');
                     const htmlStr = items.map(item => `<span class="sx-color">${item}</span>`).join('<span class="comma">,</span>');
-                    
-                    globalIndex++;
                     html += `
                         <div class="row-item">
                             <div class="row-item-header">
                                 <span class="badge-count">重复 ${count} 次：</span>
-                                <button class="btn-copy-line" onclick="copyText('${plainStr}')">复制这行</button>
+                                <button class="btn-copy-line" onclick="copyTextRaw('${plainStr}', '已复制生肖：${plainStr}')">复制这行</button>
                             </div>
                             <div class="content-line">${htmlStr}</div>
                         </div>`;
                 });
             }
             
-            // 输出数字横向结果
             if (numKeys.length > 0) {
-                html += '<div class="main-title num-title">🔢 数字重复排行（横向排列）</div>';
+                html += '<div class="main-title num-title">🔢 数字重复排行（联动排除后）</div>';
                 numKeys.forEach(count => {
                     const items = numGroups[count];
-                    const plainStr = items.join(',');
-                    const htmlStr = items.map(item => `<span class="num-color">${item}</span>`).join('<span class="comma">,</span>');
-                    
-                    globalIndex++;
+                    const plainStr = items.map(n => n < 10 ? '0'+n : n).sort((a,b)=>a-b).join(',');
+                    const htmlStr = items.sort((a,b)=>a-b).map(item => {
+                        let formatN = item < 10 ? '0'+item : item;
+                        let color = getBallColor(item);
+                        let bg = color === 'red' ? '#e1251b' : (color==='blue'?'#1472df':'#2ba245');
+                        return `<span class="ball-txt" style="background:${bg};">${formatN}</span>`;
+                    }).join(' ');
+
                     html += `
                         <div class="row-item">
                             <div class="row-item-header">
                                 <span class="badge-count">重复 ${count} 次：</span>
-                                <button class="btn-copy-line" onclick="copyText('${plainStr}')">复制这行</button>
+                                <button class="btn-copy-line" onclick="copyTextRaw('${plainStr}', '已复制数字：${plainStr}')">复制这行</button>
                             </div>
                             <div class="content-line">${htmlStr}</div>
                         </div>`;
                 });
             }
-            
             resultBox.innerHTML = html;
         }
 
-        // 一键恢复功能
-        function resetAll() {
+        function resetAllInput() {
             document.getElementById('inputText').value = '';
             document.getElementById('resultBox').innerHTML = '';
-            showToast('已恢复清空');
+            totalExtractedPool.clear();
+            if(window.currentAlivePool) window.currentAlivePool.clear();
+            document.getElementById('ballDisplay').innerHTML = '';
+            document.getElementById('filterStatusHint').style.display = 'none';
+            showToast('已清空所有输入与统计球');
         }
 
-        // 手机端一键复制兼容逻辑
-        function copyText(text) {
+        // ==================== 4. 复制与工具方法 ====================
+        function copyTextRaw(text, successMsg) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => {
-                    showToast('已复制整行：<br>' + text);
-                }).catch(() => {
-                    fallbackCopy(text);
-                });
-            } else {
-                fallbackCopy(text);
-            }
+                navigator.clipboard.writeText(text).then(() => { showToast(successMsg); }).catch(() => { fallbackCopy(text, successMsg); });
+            } else { fallbackCopy(text, successMsg); }
         }
-
-        function fallbackCopy(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                showToast('已复制整行：<br>' + text);
-            } catch (err) {
-                showToast('复制失败，请长按手动选择');
-            }
+        function fallbackCopy(text, successMsg) {
+            const textArea = document.createElement("textarea"); textArea.value = text;
+            textArea.style.position = "fixed"; document.body.appendChild(textArea);
+            textArea.focus(); textArea.select();
+            try { document.execCommand('copy'); showToast(successMsg); } catch (err) { showToast('复制失败，请手动选择'); }
             document.body.removeChild(textArea);
         }
-
-        // 提示框
         function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerHTML = msg;
-            toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 2000);
+            const toast = document.getElementById('toast'); toast.innerHTML = msg;
+            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 1800);
         }
     </script>
 </body>
