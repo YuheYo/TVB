@@ -33,7 +33,7 @@
 
         /* 下半部分号码显示盘样式 */
         .ball-box { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; background: #f5f5f7; border: 1px solid #d2d2d7; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
-        .ball-box:empty::before { content: "✍️ 在上方粘贴文本后，此处将实时展示文本中生肖对应的全部号码..."; color: #999; font-size: 14px; line-height: 24px; }
+        .ball-box:empty::before { content: "✍️ 在上方粘贴文本后，此处将实时展示包含的生肖号码及出现的具体数字..."; color: #999; font-size: 14px; line-height: 24px; }
         .ball { width: 28px; height: 28px; border-radius: 50%; color: white; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.12); }
         .ball.red { background: #e1251b; }
         .ball.blue { background: #1472df; }
@@ -41,9 +41,15 @@
         
         .grid-box { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 10px; }
         .grid-5 { grid-template-columns: repeat(5, 1fr); }
-        .btn-tm { background: white; border: 1px solid #d2d2d7; padding: 8px 2px; border-radius: 5px; font-size: 13px; cursor: pointer; color: #333; text-align: center; font-weight: 500; }
-        .btn-tm.active-kill { background: #f44336 !important; color: white !important; border-color: #f44336 !important; font-weight: bold; }
-        .btn-tm.auto-include { background: #4caf50 !important; color: white !important; border-color: #4caf50 !important; font-weight: bold; }
+        
+        /* 按钮基础样式 */
+        .btn-tm { background: white; border: 1px solid #d2d2d7; padding: 8px 2px; border-radius: 5px; font-size: 13px; cursor: pointer; color: #333; text-align: center; font-weight: 500; transition: all 0.1s ease; }
+        
+        /* 优化后的状态颜色：文本包含的生肖，使用浅绿色粗边框，不影响背景色 */
+        .btn-tm.auto-include { border: 2px solid #4caf50 !important; background: #f1f9f1; font-weight: bold; }
+        
+        /* 核心修复：点击要杀掉时，最高优先级变红，压制一切属性 */
+        .btn-tm.active-kill { background: #f44336 !important; color: white !important; border: 2px solid #f44336 !important; font-weight: bold; }
 
         .toast { position: fixed; bottom: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 25px; font-size: 14px; display: none; z-index: 999; text-align: center; max-width: 80%; }
         .hint-text { font-size: 13px; color: #4caf50; text-align: center; margin-top: 5px; font-weight: bold; }
@@ -53,17 +59,17 @@
 
     <div class="card">
         <h3>🐾 生肖 / 数字 横向精密计数器</h3>
-        <textarea id="inputText" oninput="countAll()" placeholder="请把内容粘贴到这里（自动提取包含的生肖号码，未出现的生肖不予显示）..."></textarea>
+        <textarea id="inputText" oninput="countAll()" placeholder="请把内容粘贴到这里（自动提取包含的生肖号码及单独出现的数字）..."></textarea>
         <div class="btn-group">
             <button class="btn-main" onclick="countAll()">一键横向统计</button>
             <button class="btn-reset" onclick="resetAll()">一键恢复</button>
         </div>
-        <div id="hintBox" class="hint-text" style="display:none;">✅ 已启用动态过滤：下方号码仅展示文本里包含的生肖对应的号码</div>
+        <div id="hintBox" class="hint-text" style="display:none;">✅ 已启用动态留码：下方仅展示文本中【生肖包含的号码】+【出现的数字号码】</div>
         <div id="resultBox"></div>
     </div>
 
     <div class="card" style="margin-top: 0;">
-        <h3>🔮 号码过滤盘（只出上面文本里出现的生肖号码）</h3>
+        <h3>🔮 号码过滤盘（只出上面包含的生肖与具体数字）</h3>
         
         <div class="ball-box" id="ballDisplay"></div>
         
@@ -172,8 +178,9 @@
             '阴肖': ['鼠', '龙', '蛇', '马', '狗', '猪'], '阳肖': ['牛', '虎', '兔', '羊', '猴', '鸡']
         };
 
-        let manualKills = new Set();  // 手动点击红盘需要除去的属性码
-        let textDetectedSx = new Set(); // 文本中抓取出来的基础生肖（这就是我们要“留下来”的范围）
+        let manualKills = new Set();  
+        let textDetectedSx = new Set(); 
+        let textDetectedNums = new Set(); 
 
         const sxContainer = document.getElementById('sxBtnContainer');
         ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'].forEach(sx => {
@@ -234,7 +241,6 @@
             return res;
         }
 
-        // 核心渲染：见肖留肖，再根据红盘杀码扣除
         function refreshBallDisplay() {
             const display = document.getElementById('ballDisplay');
             display.innerHTML = '';
@@ -245,27 +251,22 @@
                 return;
             }
 
-            // 1. 生成白名单号码大池（只有文本里包含的生肖对应的号码才能进池）
             let allowedPool = new Set();
             textDetectedSx.forEach(sx => {
                 if (SX_MAP[sx]) {
                     SX_MAP[sx].forEach(n => allowedPool.add(n));
                 }
             });
+            textDetectedNums.forEach(n => allowedPool.add(n));
 
-            // 2. 计算需要手动杀掉的排斥号码
             let killedPool = new Set();
             manualKills.forEach(type => {
                 getTypeNumbers(type).forEach(n => killedPool.add(n));
             });
 
-            // 3. 遍历白名单，把没被杀掉的号码显示出来
             let sortedArr = Array.from(allowedPool).sort((a, b) => a - b);
-            let showCount = 0;
-
             sortedArr.forEach(num => {
                 if (!killedPool.has(num)) {
-                    showCount++;
                     let formatNum = num < 10 ? '0' + num : num;
                     let color = getBallColor(num);
                     display.innerHTML += `<div class="ball ${color}">${formatNum}</div>`;
@@ -273,21 +274,20 @@
             });
 
             const hintBox = document.getElementById('hintBox');
-            if (textDetectedSx.size > 0) {
+            if (textDetectedSx.size > 0 || textDetectedNums.size > 0) {
                 hintBox.style.display = 'block';
             } else {
                 hintBox.style.display = 'none';
             }
         }
 
-        // ==================== 横向统计核心逻辑（见肖留肖联动版） ====================
         function countAll() {
             const text = document.getElementById('inputText').value;
             const resultBox = document.getElementById('resultBox');
             
-            // 先清理所有生肖按钮上的“绿色高亮（留肖）”样式
             document.querySelectorAll('.btn-tm').forEach(btn => btn.classList.remove('auto-include'));
             textDetectedSx.clear();
+            textDetectedNums.clear();
 
             if (!text.trim()) {
                 resultBox.innerHTML = '';
@@ -295,7 +295,6 @@
                 return;
             }
 
-            // 1. 精密提取生肖和重复次数排行
             const sxList = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
             const sxCounts = {};
             sxList.forEach(sx => {
@@ -303,25 +302,22 @@
                 const match = text.match(reg);
                 if (match) {
                     sxCounts[sx] = match.length;
-                    
-                    // 【见肖留肖核心】：记录抓到的生肖，点亮下方大面板对应的生肖按键为绿色
                     textDetectedSx.add(sx);
                     const btn = document.querySelector(`.btn-tm[data-type="${sx}"]`);
                     if (btn) btn.classList.add('auto-include');
                 }
             });
 
-            // 2. 统计文本中的纯数字重复次数排行（如有）
             const numCounts = {};
             const numbers = text.match(/\d+/g) || [];
             numbers.forEach(num => {
                 let parsedNum = parseInt(num);
                 if (parsedNum >= 1 && parsedNum <= 49) {
                     numCounts[parsedNum] = (numCounts[parsedNum] || 0) + 1;
+                    textDetectedNums.add(parsedNum);
                 }
             });
 
-            // 3. 将生肖根据重复次数重新倒序打包排序
             const sxGroups = {};
             const numGroups = {};
 
@@ -337,7 +333,6 @@
             const sxKeys = Object.keys(sxGroups).map(Number).sort((a, b) => b - a);
             const numKeys = Object.keys(numGroups).map(Number).sort((a, b) => b - a);
 
-            // 4. 完美组装排行结果 HTML 并吐出展现
             let html = '';
             
             if (sxKeys.length > 0) {
@@ -379,17 +374,15 @@
             }
 
             resultBox.innerHTML = html;
-            
-            // 联动刷新下方号码池子大盘
             refreshBallDisplay();
         }
 
-        // 复制当前还显着的（没被属性去除的）那些白名单号码
         function copyRemainingBalls() {
             let allowedPool = new Set();
             textDetectedSx.forEach(sx => {
                 if (SX_MAP[sx]) SX_MAP[sx].forEach(n => allowedPool.add(n));
             });
+            textDetectedNums.forEach(n => allowedPool.add(n));
 
             let killedPool = new Set();
             manualKills.forEach(type => {
@@ -403,31 +396,32 @@
             });
 
             if (activeArr.length === 0) {
-                showToast('大盘当前无显示的可复制球！');
+                showToast('当前大盘无显示的球！');
                 return;
             }
             const copyStr = activeArr.join(',');
-            copyTextRaw(copyStr, '已成功复制当前显示的所有生肖球：<br>' + copyStr);
+            copyTextRaw(copyStr, '已成功复制当前显示的所有号码球：<br>' + copyStr);
         }
 
         function clearAllKills() {
             manualKills.clear();
             document.querySelectorAll('.btn-tm').forEach(btn => btn.classList.remove('active-kill'));
             refreshBallDisplay();
-            showToast('已清空并恢复全部被杀的特征分类属性');
+            showToast('已恢复全部被杀特征属性');
         }
 
         function resetAll() {
             document.getElementById('inputText').value = '';
             document.getElementById('resultBox').innerHTML = '';
             textDetectedSx.clear();
+            textDetectedNums.clear();
             manualKills.clear();
             document.querySelectorAll('.btn-tm').forEach(btn => {
                 btn.classList.remove('active-kill');
                 btn.classList.remove('auto-include');
             });
             refreshBallDisplay();
-            showToast('数据已全面重置恢复');
+            showToast('数据已重置');
         }
 
         function copyTextRaw(text, successMsg) {
@@ -449,4 +443,3 @@
     </script>
 </body>
 </html>
-
